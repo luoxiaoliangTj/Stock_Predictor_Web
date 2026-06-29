@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Predictor </title>
+<style>
+:root {
+  --up: #d32f2f;
+  --down: #388e3c;
+  --bg: #ffffff;
+  --card: #f8f9fa;
+  --border: #e0e0e0;
+  --text: #212121;
+  --subtext: #757575;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.stock-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stock-code {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+/* Price Section */
+.price-section {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.price {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.change {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.timestamp {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 4px;
+}
+
+/* Quote Grid */
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.quote-item {
+  text-align: center;
+}
+
+.quote-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.quote-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Announcements */
+.ann-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ann-item:last-child {
+  border-bottom: none;
+}
+
+.ann-date {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ann-title {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Capital Flow */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.flow-item {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+
+.flow-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.flow-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Analysis */
+.analysis {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.analysis p {
+  margin-bottom: 10px;
+}
+
+.analysis p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer */
+.footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--subtext);
+  text-align: center;
+}
+
+.refresh-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.refresh-btn:active {
+  opacity: 0.8;
+}
+
+/* Index Page */
+.index-container {
+  max-width: 480px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.index-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.index-subtitle {
+  font-size: 15px;
+  color: var(--subtext);
+  margin-bottom: 32px;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--text);
+}
+
+.search-btn {
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:active {
+  opacity: 0.8;
+}
+
+/* Search Results */
+.results {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.result-item {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.result-item:hover {
+  background: var(--card);
+}
+
+.result-code {
+  font-size: 14px;
+  color: var(--subtext);
+  margin-left: 12px;
+}
+</style>
+</head>
+<body>
+
+
+    <div class="index-container">
+        <div class="stock-name" style="font-size: 32px; margin-bottom: 8px;">Stock Predictor</div>
+        <div class="index-subtitle">输入股票代码、名称或拼音首字母</div>
+        
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="例如: 002146 / 荣盛发展 / RS" autofocus>
+            <button class="search-btn" onclick="searchStock()">查询</button>
+        </div>
+        
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script>
+    // 股票列表数据 (由Python预生成)
+    const stockList = {"688548": "广钢气体", "688796": "百奥赛图", "688233": "神工股份", "688432": "有研硅", "688198": "佰仁医疗", "688120": "华海清科", "301528": "多浦乐", "301520": "万邦医药", "301307": "美利信", "300436": "广生堂", "300204": "舒泰神", "301033": "迈普医学", "688765": "禾元生物-U", "688336": "三生国健", "688689": "银河微电", "300434": "金石亚药", "301030": "*ST仕净", "300706": "阿石创", "300024": "机器人", "301328": "维峰电子", "301263": "泰恩康", "688629": "华丰科技", "688549": "中巨芯-U", "688596": "正帆科技", "300723": "一品红", "688503": "聚和材料", "688331": "荣昌生物", "300149": "睿智医药", "688105": "诺唯赞", "300346": "南大光电", "688652": "京仪装备", "688382": "益方生物-U", "300488": "恒锋工具", "688578": "艾力斯", "688180": "君实生物-U", "688783": "西安奕材-U", "688545": "兴福电子", "688607": "康众医疗", "300485": "赛升药业", "688106": "金宏气体", "688117": "圣诺生物", "688535": "华海诚科", "688711": "宏微科技", "688530": "欧莱新材", "688450": "光格科技", "688200": "华峰测控", "688506": "百利天恒", "688728": "格科微", "688376": "美埃科技", "688428": "诺诚健华", "688008": "澜起科技", "688068": "热景生物", "688122": "西部超导", "300002": "神州泰岳", "688758": "赛分科技", "688066": "*ST航图", "688037": "芯源微", "688362": "甬矽电子", "301393": "昊帆生物", "688727": "恒坤新材", "688265": "南模生物", "688221": "前沿生物-U", "688103": "国力电子", "301211": "亨迪药业", "301230": "泓博医药", "688126": "沪硅产业", "300199": "翰宇药业", "002808": "恒久退", "300721": "怡达股份", "300343": "联创股份", "688192": "迪哲医药-U", "300260": "新莱应材", "300558": "贝达药业", "688176": "亚虹医药-U", "688356": "XD键凯科", "605081": "退市太和", "688019": "安集科技", "688136": "科兴制药", "300801": "泰和科技", "300357": "我武生物", "300894": "火星人", "000004": "国华退", "688566": "吉贝尔", "688012": "中微公司", "688138": "清溢光电", "688293": "奥浦迈", "688411": "海博思创", "300373": "扬杰科技", "688163": "赛伦生物", "688670": "金迪克", "300236": "上海新阳", "688062": "迈威生物-U", "688235": "百济神州", "688678": "福立旺", "002638": "勤上股份", "688343": "云天励飞-U", "000017": "深中华A", "000751": "锌业股份", "300852": "四会富仕", "002277": "友阿股份"};
+    
+    function searchStock() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        if (!query) return;
+        
+        const results = [];
+        
+        for (const [code, name] of Object.entries(stockList)) {
+            if (code.includes(query) || name.toLowerCase().includes(query)) {
+                results.push({code, name});
+            }
+        }
+        
+        // 按匹配精度排序
+        results.sort((a, b) => {
+            const aCodeMatch = a.code.includes(query) ? 0 : 1;
+            const bCodeMatch = b.code.includes(query) ? 0 : 1;
+            return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
+        });
+        
+        const resultsDiv = document.getElementById('results');
+        if (results.length === 0) {
+            resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
+            return;
+        }
+        
+        resultsDiv.innerHTML = results.slice(0, 10).map(r => 
+            `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
+                <span>${r.name}</span>
+                <span class="result-code">${r.code}</span>
+            </div>`
+        ).join('');
+    }
+    
+    // 回车搜索
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') searchStock();
+    });
+    </script>
+    
+
+</body>
+</html>

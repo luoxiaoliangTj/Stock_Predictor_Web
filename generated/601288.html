@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>601288 农业银行</title>
+<style>
+:root {
+  --up: #d32f2f;
+  --down: #388e3c;
+  --bg: #ffffff;
+  --card: #f8f9fa;
+  --border: #e0e0e0;
+  --text: #212121;
+  --subtext: #757575;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.stock-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stock-code {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+/* Price Section */
+.price-section {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.price {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.change {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.timestamp {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 4px;
+}
+
+/* Quote Grid */
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.quote-item {
+  text-align: center;
+}
+
+.quote-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.quote-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Announcements */
+.ann-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ann-item:last-child {
+  border-bottom: none;
+}
+
+.ann-date {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ann-title {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Capital Flow */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.flow-item {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+
+.flow-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.flow-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Analysis */
+.analysis {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.analysis p {
+  margin-bottom: 10px;
+}
+
+.analysis p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer */
+.footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--subtext);
+  text-align: center;
+}
+
+.refresh-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.refresh-btn:active {
+  opacity: 0.8;
+}
+
+/* Index Page */
+.index-container {
+  max-width: 480px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.index-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.index-subtitle {
+  font-size: 15px;
+  color: var(--subtext);
+  margin-bottom: 32px;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--text);
+}
+
+.search-btn {
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:active {
+  opacity: 0.8;
+}
+
+/* Search Results */
+.results {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.result-item {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.result-item:hover {
+  background: var(--card);
+}
+
+.result-code {
+  font-size: 14px;
+  color: var(--subtext);
+  margin-left: 12px;
+}
+</style>
+</head>
+<body>
+
+
+    <div class="header">
+        <div class="stock-name">农业银行</div>
+        <div class="stock-code">601288</div>
+    </div>
+    
+    <div class="price-section">
+        <div class="price-row">
+            <span class="price">6.24</span>
+            <span class="change up">+0.05</span>
+            <span class="change up">+0.81%</span>
+        </div>
+        <div class="timestamp">数据时间: 2026-06-29 16:14:15</div>
+        
+        <div class="quote-grid">
+            <div class="quote-item">
+                <div class="quote-label">今开</div>
+                <div class="quote-value">6.16</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">最高</div>
+                <div class="quote-value">6.3</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">最低</div>
+                <div class="quote-value">6.0</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">成交量</div>
+                <div class="quote-value">403.45万手</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">成交额</div>
+                <div class="quote-value">24.89万元</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">振幅</div>
+                <div class="quote-value">4.85%</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">市盈率</div>
+                <div class="quote-value">7.42</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">市净率</div>
+                <div class="quote-value">0.79</div>
+            </div>
+            <div class="quote-item">
+                <div class="quote-label">总市值</div>
+                <div class="quote-value">2.18万亿</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">最新公告</div>
+        
+        <div class="ann-item">
+            <div class="ann-date">2026-06-27</div>
+            <div class="ann-title">农业银行:北京市金杜律师事务所关于中国农业银行股份有限公司2025年度股东会的法律意见书</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-06-27</div>
+            <div class="ann-title">农业银行:农业银行2025年度股东会决议公告</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-06-05</div>
+            <div class="ann-title">农业银行:农业银行董事会决议公告</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-06-05</div>
+            <div class="ann-title">农业银行:农业银行关于召开2025年度股东会的通知</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-06-05</div>
+            <div class="ann-title">农业银行:农业银行2025年度股东会会议资料</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-06-04</div>
+            <div class="ann-title">农业银行:农业银行H股公告(股份發行人及根據《上市規則》第十九B章上市的香港預託證券發行人的證券變動月報表)</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-05-20</div>
+            <div class="ann-title">农业银行:农业银行关于2026年总损失吸收能力非资本债券(第二期)(债券通)发行完毕的公告</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-05-13</div>
+            <div class="ann-title">农业银行:农业银行关于董事离任的公告</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-05-13</div>
+            <div class="ann-title">农业银行:农业银行关于2026年二级资本债券(第一期)(债券通)发行完毕的公告</div>
+        </div>
+        <div class="ann-item">
+            <div class="ann-date">2026-05-08</div>
+            <div class="ann-title">农业银行:农业银行H股公告(证券变动月报表)</div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">资金流向 (2026-06-29)</div>
+        <div class="flow-grid">
+            
+            <div class="flow-item">
+                <div class="flow-label">主力净流入</div>
+                <div class="flow-value up">7210.99万元</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-label">超大单净流入</div>
+                <div class="flow-value down">-629.63万元</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-label">大单净流入</div>
+                <div class="flow-value up">7840.61万元</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-label">中单净流入</div>
+                <div class="flow-value down">-6859.23万元</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-label">小单净流入</div>
+                <div class="flow-value down">-351.75万元</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">实时研判</div>
+        <div class="analysis">
+            <p><strong>震荡整理:</strong> 农业银行今日变动0.81%，收盘价6.24元，处于震荡区间。建议观望，等待方向明确。</p>
+<p><strong>最新公告:</strong> 2026-06-27发布「农业银行:北京市金杜律师事务所关于中国农业银行股份有限公司2025年度股东会的法律意见书」，建议仔细阅读公告全文，评估对公司基本面的影响。</p>
+<p><strong>资金流入:</strong> 主力净流入7210.99万元，资金面偏积极，但需结合价格走势综合判断。</p>
+<p><strong>估值水平:</strong> PE 7.42, PB 0.79。</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>数据来源: 腾讯财经 + 东方财富</p>
+        <p>生成时间: 2026-06-29 23:10:26</p>
+        <button class="refresh-btn" onclick="location.reload()">刷新数据</button>
+    </div>
+    
+
+</body>
+</html>

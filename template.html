@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{code}} {{name}}</title>
+<style>
+:root {
+  --up: #d32f2f;
+  --down: #388e3c;
+  --bg: #ffffff;
+  --card: #f8f9fa;
+  --border: #e0e0e0;
+  --text: #212121;
+  --subtext: #757575;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.stock-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stock-code {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+/* Price Section */
+.price-section {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.price {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.change {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.timestamp {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-top: 4px;
+}
+
+/* Quote Grid */
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.quote-item {
+  text-align: center;
+}
+
+.quote-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.quote-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Announcements */
+.ann-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ann-item:last-child {
+  border-bottom: none;
+}
+
+.ann-date {
+  font-size: 13px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ann-title {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Capital Flow */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.flow-item {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+
+.flow-label {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-bottom: 4px;
+}
+
+.flow-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Analysis */
+.analysis {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.analysis p {
+  margin-bottom: 10px;
+}
+
+.analysis p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer */
+.footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--subtext);
+  text-align: center;
+}
+
+.refresh-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.refresh-btn:active {
+  opacity: 0.8;
+}
+
+/* Index Page */
+.index-container {
+  max-width: 480px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.index-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.index-subtitle {
+  font-size: 15px;
+  color: var(--subtext);
+  margin-bottom: 32px;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--text);
+}
+
+.search-btn {
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:active {
+  opacity: 0.8;
+}
+
+/* Search Results */
+.results {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.result-item {
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.result-item:hover {
+  background: var(--card);
+}
+
+.result-code {
+  font-size: 14px;
+  color: var(--subtext);
+  margin-left: 12px;
+}
+</style>
+</head>
+<body>
+
+{{body}}
+
+</body>
+</html>
