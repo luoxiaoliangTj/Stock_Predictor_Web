@@ -345,39 +345,47 @@ body {
 
 <script>
 // 搜索函数 - 调用后端API
-<script>
-// 搜索函数 - 调用后端API
 async function searchStock() {
-    const query = document.getElementById('searchInput').value.trim();
+
+function searchStock() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
     if (!query) return;
     
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">搜索中...</p>';
+    const results = [];
     
-    try {
-        const response = await fetch(`/api/stock/search?q=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-            throw new Error(`API错误: ${response.status}`);
+    for (const [code, name] of Object.entries(stockList)) {
+        if (code.includes(query) || name.toLowerCase().includes(query)) {
+            results.push({code, name});
         }
-        
-        const results = await response.json();
-        
-        if (results.length === 0) {
-            resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
-            return;
-        }
-        
-        resultsDiv.innerHTML = results.slice(0, 10).map(r => 
-            `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
-                <span>${r.name}</span>
-                <span class="result-code">${r.code}</span>
-            </div>`
-        ).join('');
-    } catch (error) {
-        resultsDiv.innerHTML = `<p style="text-align:center; color:#d32f2f; padding:20px;">搜索失败: ${error.message}</p>`;
     }
+    
+    // 按匹配精度排序
+    results.sort((a, b) => {
+        const aCodeMatch = a.code.includes(query) ? 0 : 1;
+        const bCodeMatch = b.code.includes(query) ? 0 : 1;
+        return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
+    });
+    
+    const resultsDiv = document.getElementById('results');
+    if (results.length === 0) {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = results.slice(0, 10).map(r => 
+        `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
+            <span>${r.name}</span>
+            <span class="result-code">${r.code}</span>
+        </div>`
+    ).join('');
 }
+
+// 回车搜索
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') searchStock();
+});
 </script>
+
 <script>
 // 深度分析API配置
 const ANALYSIS_API_BASE = 'http://localhost:5000';

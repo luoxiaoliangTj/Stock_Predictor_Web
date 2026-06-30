@@ -17,9 +17,13 @@ import time
 sys.path.insert(0, str(Path(__file__).parent))
 
 from stock_analyzer import InvestmentAnalyzer
+from stock_data import StockDataFetcher
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
+
+# 初始化数据获取器
+stock_fetcher = StockDataFetcher()
 
 # 分析缓存
 analysis_cache = {}
@@ -81,6 +85,25 @@ def clear_cache():
     with cache_lock:
         analysis_cache.clear()
     return jsonify({'status': 'ok'})
+
+
+@app.route('/api/stock/search', methods=['GET'])
+def search_stock():
+    """股票搜索接口 - 实时调用东方财富API"""
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return jsonify({'error': '缺少搜索参数 q'}), 400
+    
+    try:
+        # 获取最新股票列表
+        stock_map = stock_fetcher.get_stock_name_map()
+        # 搜索匹配的股票
+        from stock_data import search_stock as search_func
+        results = search_func(query, stock_map)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'error': f'搜索失败: {str(e)}'}), 500
 
 
 if __name__ == '__main__':
