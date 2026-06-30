@@ -225,8 +225,8 @@ def generate_stock_page(code: str, fetcher: StockDataFetcher, include_deep_analy
     return html
 
 
-def generate_index_page(fetcher: StockDataFetcher) -> str:
-    """生成搜索首页"""
+def generate_index_page() -> str:
+    """生成搜索首页 - 纯前端方案（无后端依赖）"""
     
     body = """
 <div class="index-container">
@@ -242,40 +242,133 @@ def generate_index_page(fetcher: StockDataFetcher) -> str:
 </div>
 
 <script>
-// 股票列表数据 (由Python预生成)
-const stockList = __STOCK_LIST_PLACEHOLDER__;
+// 内置常用股票名称 → 代码映射
+const NAME_MAP = {
+    '贵州茅台':'600519','中国平安':'601318','农业银行':'601288','工商银行':'601398',
+    '中国银行':'601988','招商银行':'600036','中国石油':'601857','中国石化':'600028',
+    '中国建筑':'601668','中国移动':'600941','中国电信':'601728','中国联通':'600050',
+    '长江电力':'600900','紫金矿业':'601899','比亚迪':'002594','宁德时代':'300750',
+    '五粮液':'000858','美的集团':'000333','海尔智家':'600690','格力电器':'000651',
+    '恒瑞医药':'600276','药明康德':'603259','迈瑞医疗':'300760','中信证券':'600030',
+    '东方财富':'300059','华泰证券':'601688','保利发展':'600048','万科A':'000002',
+    '金地集团':'600383','荣盛发展':'002146','新城控股':'601155','海螺水泥':'600585',
+    '三一重工':'600031','隆基绿能':'601012','通威股份':'600438','阳光电源':'300274',
+    '京东方A':'000725','海康威视':'002415','立讯精密':'002475','汇川技术':'300124',
+    '爱尔眼科':'300015','智飞生物':'300122','中远海控':'601919','中国中免':'601888',
+    '中国神华':'601088','陕西煤业':'601225','万华化学':'600309','华能水电':'600025',
+    '东方电气':'600875','平安银行':'000001','宁波银行':'002142','江苏银行':'00919',
+    '南京银行':'601009','上海银行':'601229','北京银行':'601169','民生银行':'600016',
+};
+
+// 拼音首字母映射
+const PINYIN_MAP = {
+    'GZMT':'600519','ZGPA':'601318','NY':'601288','GS':'601398','ZG':'601988',
+    'ZS':'600036','ZGSY':'601857','ZGSH':'600028','ZJ':'601668','YD':'600941',
+    'DX':'601728','LT':'600050','CJDL':'600900','ZJ':'601899','BD':'002594',
+    'ND':'300750','WLY':'000858','MD':'000333','HE':'600690','GL':'000651',
+    'HR':'600276','YKD':'603259','MR':'300760','ZX':'600030','DF':'300059',
+    'HT':'600837','HTZQ':'601688','BL':'600048','WK':'000002','ALK':'300015',
+    'ZF':'300122','SY':'600031','LJ':'601012','TW':'600438','YG':'300274',
+    'JDF':'000725','HK':'002415','LXJM':'002475','HCJS':'300124','RS':'002146',
+    'XC':'601155','HD':'600585','ZE':'601728','WH':'600309','CP':'601318',
+};
+
+function resolveCode(input) {
+    input = input.trim();
+    if (/^\\d{5,6}$/.test(input)) return normalizeCode(input);
+    if (/^[hs][a-z]?(\\d{6})$/i.test(input)) {
+        const n = input.replace(/^[hs]/i,'').toLowerCase();
+        return normalizeCode(n);
+    }
+    if (NAME_MAP[input]) return normalizeCode(NAME_MAP[input]);
+    const upper = input.toUpperCase();
+    if (PINYIN_MAP[upper]) return normalizeCode(PINYIN_MAP[upper]);
+    for (const name in NAME_MAP) {
+        if (name.includes(input)) return normalizeCode(NAME_MAP[name]);
+    }
+    return null;
+}
+
+function normalizeCode(code) {
+    if (code.startsWith('6') || code.startsWith('9')) return 'sh' + code;
+    return 'sz' + code;
+}
+
+function loadStock(code) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">正在加载...</p>';
+    
+    fetch('https://qt.gtimg.cn/q=' + code)
+        .then(resp => resp.text())
+        .then(text => {
+            const match = text.match(/v_(\\w+)="(.+?)"/);
+            if (!match || !match[2]) {
+                resultsDiv.innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">该股票无行情数据</p>';
+                return;
+            }
+            
+            const fields = match[2].split('~');
+            if (!fields || fields.length < 50) {
+                resultsDiv.innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">行情数据解析失败</p>';
+                return;
+            }
+            
+            const name = fields[1];
+            const stockCode = fields[2];
+            const price = parseFloat(fields[3]);
+            const prevClose = parseFloat(fields[4]);
+            const change = parseFloat(fields[31]);
+            const changePct = parseFloat(fields[32]);
+            
+            const isUp = change >= 0;
+            const cClass = isUp ? 'up' : 'down';
+            const sign = isUp ? '+' : '';
+            
+            const html = \`
+                <div class="header">
+                    <div class="stock-name">\${name}</div>
+                    <div class="stock-code">\${stockCode}</div>
+                </div>
+                <div class="price-section">
+                    <div class="price-row">
+                        <span class="price">\${price.toFixed(2)}</span>
+                        <span class="change \${cClass}">\${sign}\${change.toFixed(2)} \${sign}\${changePct.toFixed(2)}%</span>
+                    </div>
+                    <div class="quote-grid">
+                        <div class="quote-item"><div class="quote-label">今开</div><div class="quote-value">\${(price * (1 + changePct/100)).toFixed(2)}</div></div>
+                        <div class="quote-item"><div class="quote-label">最高</div><div class="quote-value">-</div></div>
+                        <div class="quote-item"><div class="quote-label">最低</div><div class="quote-value">-</div></div>
+                        <div class="quote-item"><div class="quote-label">成交量</div><div class="quote-value">-</div></div>
+                        <div class="quote-item"><div class="quote-label">成交额</div><div class="quote-value">-</div></div>
+                        <div class="quote-item"><div class="quote-label">市盈率</div><div class="quote-value">-</div></div>
+                        <div class="quote-item"><div class="quote-label">市净率</div><div class="quote-value">-</div></div>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>数据来源：腾讯财经 · 更新时间 \${new Date().toLocaleString()}</p>
+                </div>
+            \`;
+            
+            document.body.innerHTML = html;
+        })
+        .catch(err => {
+            resultsDiv.innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">加载失败: ' + err.message + '</p>';
+        });
+}
 
 function searchStock() {
-    const query = document.getElementById('searchInput').value.trim().toLowerCase();
-    if (!query) return;
+    const input = document.getElementById('searchInput').value.trim();
+    if (!input) return;
     
-    const results = [];
-    
-    for (const [code, name] of Object.entries(stockList)) {
-        if (code.includes(query) || name.toLowerCase().includes(query)) {
-            results.push({code, name});
-        }
-    }
-    
-    // 按匹配精度排序
-    results.sort((a, b) => {
-        const aCodeMatch = a.code.includes(query) ? 0 : 1;
-        const bCodeMatch = b.code.includes(query) ? 0 : 1;
-        return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
-    });
-    
+    const code = resolveCode(input);
     const resultsDiv = document.getElementById('results');
-    if (results.length === 0) {
-        resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
+    
+    if (!code) {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">未找到该股票</p>';
         return;
     }
     
-    resultsDiv.innerHTML = results.slice(0, 10).map(r => 
-        `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
-            <span>${r.name}</span>
-            <span class="result-code">${r.code}</span>
-        </div>`
-    ).join('');
+    loadStock(code);
 }
 
 // 回车搜索
@@ -283,22 +376,18 @@ document.getElementById('searchInput').addEventListener('keypress', function(e) 
     if (e.key === 'Enter') searchStock();
 });
 </script>"""
-    
+
     # 读取模板
     template_path = Path(__file__).parent / "template.html"
     with open(template_path, 'r', encoding='utf-8') as f:
         template = f.read()
     
-    # 获取股票列表
-    stock_map = fetcher.get_stock_name_map()
-    stock_json = json.dumps(stock_map, ensure_ascii=False)
-    
     html = template.replace("{{body}}", body)
     html = html.replace("{{code}}", "Stock Predictor")
     html = html.replace("{{name}}", "")
-    html = html.replace("__STOCK_LIST_PLACEHOLDER__", stock_json)
     
     return html
+
 
 
 def main():
@@ -314,14 +403,14 @@ def main():
     if sys.argv[1] == "--index":
         # 生成搜索首页
         print("正在生成搜索首页...")
-        html = generate_index_page(fetcher)
+        html = generate_index_page()
         
         output_path = Path(__file__).parent / "index.html"
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html)
         
         print(f"✓ 搜索首页已生成: {output_path}")
-        print(f"  股票数量: {len(fetcher.get_stock_name_map())}")
+        print("✓ 搜索首页已生成: index.html")
     
     else:
         # 生成股票页面
