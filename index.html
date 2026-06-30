@@ -344,8 +344,35 @@ body {
 </div>
 
 <script>
-// 股票列表数据 (由Python预生成)
-const stockList = {};
+// 常用股票名称 → 代码映射（用于快速搜索）
+const NAME_MAP = {
+  '贵州茅台':'600519','中国平安':'601318','农业银行':'601288','工商银行':'601398',
+  '中国银行':'601988','招商银行':'600036','中国石油':'601857','中国石化':'600028',
+  '中国建筑':'601668','中国移动':'600941','中国电信':'601728','中国联通':'600050',
+  '长江电力':'600900','紫金矿业':'601899','比亚迪':'002594','宁德时代':'300750',
+  '五粮液':'000858','美的集团':'000333','海尔智家':'600690','格力电器':'000651',
+  '恒瑞医药':'600276','药明康德':'603259','迈瑞医疗':'300760','中信证券':'600030',
+  '东方财富':'300059','海通证券':'600837','华泰证券':'601688','保利发展':'600048',
+  '万科A':'000002','爱尔眼科':'300015','智飞生物':'300122','汇川技术':'300124',
+  '立讯精密':'002475','海康威视':'002415','京东方A':'000725','中远海控':'601919',
+  '中国中免':'601888','中国神华':'601088','陕西煤业':'601225','万华化学':'600309',
+  '三一重工':'600031','中联重科':'000157','荣盛发展':'002146','金地集团':'600383',
+  '新城控股':'601155','海螺水泥':'600585','华能水电':'600025','隆基绿能':'601012',
+  '通威股份':'600438','阳光电源':'300274','东方电气':'600875','贵州茅台':'600519'
+};
+
+// 拼音首字母映射（常用简码）
+const PINYIN_MAP = {
+  'GZMT':'600519','ZGPA':'601318','NY':'601288','GS':'601398','ZG':'601988',
+  'ZS':'600036','ZGSY':'601857','ZGSH':'600028','ZJ':'601668','YD':'600941',
+  'DX':'601728','LT':'600050','CJDL':'600900','ZJ':'601899','BD':'002594',
+  'ND':'300750','WLY':'000858','MD':'000333','HE':'600690','GL':'000651',
+  'HR':'600276','YKD':'603259','MR':'300760','ZX':'600030','DF':'300059',
+  'HT':'600837','HTZQ':'601688','BL':'600048','WK':'000002','ALK':'300015',
+  'ZF':'300122','BFH':'600383','XC':'601155','HD':'600585','LNG':'600025',
+  'LJ':'601012','TW':'600438','YG':'300274','DFDQ':'600875','RS':'002146',
+  'JD':'600383','MT':'600519','PA':'601318','ZH':'600309','SY':'600031'
+};
 
 function searchStock() {
     const query = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -353,17 +380,38 @@ function searchStock() {
     
     const results = [];
     
-    for (const [code, name] of Object.entries(stockList)) {
-        if (code.includes(query) || name.toLowerCase().includes(query)) {
-            results.push({code, name});
+    // 1. 纯数字代码匹配
+    if (/^\d{5,6}$/.test(query)) {
+        // 规范化代码（加 sh/sz 前缀）
+        let code = normalizeCode(query);
+        results.push({code, name: '', match: 'code'});
+    }
+    
+    // 2. 名称匹配
+    for (const name in NAME_MAP) {
+        if (name.includes(query)) {
+            results.push({code: normalizeCode(NAME_MAP[name]), name: name, match: 'name'});
+        }
+    }
+    
+    // 3. 拼音首字母匹配
+    const upperQuery = query.toUpperCase();
+    if (PINYIN_MAP[upperQuery]) {
+        results.push({code: normalizeCode(PINYIN_MAP[upperQuery]), name: '', match: 'pinyin'});
+    }
+    
+    // 4. 模糊名称匹配
+    for (const name in NAME_MAP) {
+        if (query.length >= 2 && name.includes(query) && !results.some(r => r.name === name)) {
+            results.push({code: normalizeCode(NAME_MAP[name]), name: name, match: 'fuzzy'});
         }
     }
     
     // 按匹配精度排序
     results.sort((a, b) => {
-        const aCodeMatch = a.code.includes(query) ? 0 : 1;
-        const bCodeMatch = b.code.includes(query) ? 0 : 1;
-        return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
+        const aScore = a.match === 'code' ? 0 : (a.match === 'name' ? 1 : (a.match === 'pinyin' ? 2 : 3));
+        const bScore = b.match === 'code' ? 0 : (b.match === 'name' ? 1 : (b.match === 'pinyin' ? 2 : 3));
+        return aScore - bScore || a.code.localeCompare(b.code);
     });
     
     const resultsDiv = document.getElementById('results');
@@ -372,65 +420,174 @@ function searchStock() {
         return;
     }
     
+    // 渲染搜索结果
     resultsDiv.innerHTML = results.slice(0, 10).map(r => 
-        `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
-            <span>${r.name}</span>
+        `<div class="result-item" onclick="loadStock('${r.code}')">
+            <span>${r.name || r.code}</span>
             <span class="result-code">${r.code}</span>
         </div>`
     ).join('');
+}
+
+// 规范化股票代码
+function normalizeCode(code) {
+    code = code.replace(/^(sh|sz|SH|SZ)/, '').toLowerCase();
+    if (code.startsWith('6')) return 'sh' + code;
+    if (code.startsWith('0') || code.startsWith('3')) return 'sz' + code;
+    if (code.startsWith('9')) return 'sh' + code;
+    return 'sz' + code;
+}
+
+// 加载股票详情
+async function loadStock(code) {
+    document.getElementById('searchInput').value = code;
+    document.getElementById('results').innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">正在加载...</p>';
+    
+    try {
+        const url = `https://qt.gtimg.cn/q=${code}`;
+        const resp = await fetch(url);
+        const text = await resp.text();
+        
+        // 解析腾讯行情数据
+        const match = text.match(/v_(\w+)="(.+?)"/);
+        if (!match || !match[2]) {
+            document.getElementById('results').innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">该股票无行情数据（可能不存在或已退市）</p>';
+            return;
+        }
+        
+        const fields = match[2].split('~');
+        if (!fields || fields.length < 50) {
+            document.getElementById('results').innerHTML = '<p style="text-align:center; color:#d32f2f; padding:20px;">行情数据解析失败</p>';
+            return;
+        }
+        
+        // 提取数据
+        const stockName = fields[1];
+        const stockCode = fields[2];
+        const price = parseFloat(fields[3]);
+        const prevClose = parseFloat(fields[4]);
+        const change = parseFloat(fields[31]);
+        const changePct = parseFloat(fields[32]);
+        const high = parseFloat(fields[33]);
+        const low = parseFloat(fields[34]);
+        const volume = parseInt(fields[6]);
+        const amount = parseFloat(fields[37]);
+        const turnover = fields[38];
+        const pe = fields[39];
+        const pb = fields[46];
+        const amplitude = fields[43];
+        
+        // 渲染页面
+        const isUp = change >= 0;
+        const changeClass = isUp ? 'up' : 'down';
+        const arrow = isUp ? '▲' : '▼';
+        const sign = isUp ? '+' : '';
+        
+        const html = `
+            <div class="header">
+                <div class="stock-name">${stockName}</div>
+                <div class="stock-code">${stockCode}</div>
+            </div>
+            
+            <div class="price-section">
+                <div class="price-row">
+                    <div class="price">${price.toFixed(2)}</div>
+                    <div class="change ${changeClass}">${sign}${change.toFixed(2)} ${sign}${changePct.toFixed(2)}%</div>
+                </div>
+                <div class="timestamp">更新于 ${new Date().toLocaleTimeString()}</div>
+                
+                <div class="quote-grid">
+                    <div class="quote-item">
+                        <div class="quote-label">今开</div>
+                        <div class="quote-value">${(amount > 0 ? (amount / 10000).toFixed(2) : '0')}</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">最高</div>
+                        <div class="quote-value">${high.toFixed(2)}</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">最低</div>
+                        <div class="quote-value">${low.toFixed(2)}</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">成交量</div>
+                        <div class="quote-value">${(volume / 10000).toFixed(2)}万手</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">成交额</div>
+                        <div class="quote-value">${(amount / 100000000).toFixed(2)}亿</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">换手率</div>
+                        <div class="quote-value">${turnover}%</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">市盈率</div>
+                        <div class="quote-value">${pe || '-'}</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">市净率</div>
+                        <div class="quote-value">${pb || '-'}</div>
+                    </div>
+                    <div class="quote-item">
+                        <div class="quote-label">振幅</div>
+                        <div class="quote-value">${amplitude}%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    AI 研判
+                    <button class="analyze-btn" onclick="loadDeepAnalysis('${code}')">深度分析</button>
+                </div>
+                <div class="analysis">
+                    <p>${generateAnalysis(price, prevClose, changePct, turnover, volume)}</p>
+                </div>
+            </div>
+            
+            <div class="footer">
+                数据来源：腾讯行情 · 更新时间 ${new Date().toLocaleString('zh-CN')}
+            </div>
+        `;
+        
+        document.body.innerHTML = html;
+    } catch (err) {
+        document.getElementById('results').innerHTML = `<p style="text-align:center; color:#d32f2f; padding:20px;">加载失败: ${err.message}</p>`;
+    }
+}
+
+// AI 简易分析
+function generateAnalysis(price, prevClose, changePct, turnover, volume) {
+    const lines = [];
+    
+    if (changePct > 8) {
+        lines.push('🔴 <strong>大幅上涨：</strong>涨幅超过 8%，可能有利好推动。注意涨停板附近抛压，追高需谨慎。');
+    } else if (changePct > 3) {
+        lines.push('🟠 <strong>明显上涨：</strong>多头占优，动能充足。如非短线已持有，追高需设止损。');
+    } else if (changePct > 0) {
+        lines.push('🟢 <strong>小幅上涨：</strong>温和偏多，日内关注量能是否配合，可适时逢低布局。');
+    } else if (changePct > -3) {
+        lines.push('🔵 <strong>小幅调整：</strong>空头略占优势，关注支撑位，不宜盲目杀跌。');
+    } else if (changePct > -8) {
+        lines.push('🟣 <strong>明显下跌：</strong>抛压较大，建议控制仓位，观望为主，等待企稳信号。');
+    } else {
+        lines.push('⚫ <strong>大幅下跌：</strong>跌幅超 8%，利空风险释放中，短期回避。');
+    }
+    
+    if (parseFloat(turnover) > 15) {
+        lines.push('📊 <strong>换手率极高</strong>(' + turnover + '%)，主力资金异动，趋势可能面临转折。');
+    } else if (parseFloat(turnover) > 7) {
+        lines.push('📊 <strong>换手活跃</strong>(' + turnover + '%)，资金参与度较高，趋势有望延续。');
+    }
+    
+    return lines.join('<br><br>');
 }
 
 // 回车搜索
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') searchStock();
 });
-</script>
-
-<script>
-// 深度分析API配置
-const ANALYSIS_API_BASE = 'http://localhost:5000';
-
-// 加载深度分析
-async function loadDeepAnalysis(code) {
-    const container = document.getElementById('deep-analysis');
-    if (!container) return;
-    
-    // 检查是否已加载
-    if (container.dataset.loaded === 'true') {
-        container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        return;
-    }
-    
-    // 显示加载中
-    container.innerHTML = '<div class="loading">分析中，请稍候...</div>';
-    container.style.display = 'block';
-    
-    try {
-        const response = await fetch(`${ANALYSIS_API_BASE}/analyze?code=${code}`);
-        if (!response.ok) {
-            throw new Error(`API错误: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.analysis && data.analysis !== '分析失败') {
-            container.innerHTML = `<pre>${escapeHtml(data.analysis)}</pre>`;
-        } else {
-            container.innerHTML = '<div class="loading">分析失败，请稍后重试</div>';
-        }
-        
-        container.dataset.loaded = 'true';
-    } catch (error) {
-        container.innerHTML = `<div class="loading">加载失败: ${error.message}</div>`;
-    }
-}
-
-// HTML转义防止XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 </script>
 
 </body>
