@@ -3,362 +3,353 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Predictor </title>
+<title>Stock Predictor</title>
 <style>
 :root {
-  --up: #d32f2f;
-  --down: #388e3c;
   --bg: #ffffff;
   --card: #f8f9fa;
   --border: #e0e0e0;
   --text: #212121;
-  --subtext: #757575;
+  --sub: #757575;
+  --accent: #1976d2;
+  --up: #d32f2f;
+  --down: #388e3c;
+  --gold: #f57c00;
 }
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--text);
   background: var(--bg);
+  color: var(--text);
   max-width: 780px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 1rem;
 }
-
-/* Header */
-.header {
-  margin-bottom: 24px;
-}
-
-.stock-name {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.stock-code {
-  font-size: 14px;
-  color: var(--subtext);
-}
-
-/* Price Section */
-.price-section {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-}
-
-.price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.price {
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
-
-.change {
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.up { color: var(--up); }
-.down { color: var(--down); }
-
-.timestamp {
-  font-size: 13px;
-  color: var(--subtext);
-  margin-top: 4px;
-}
-
-/* Quote Grid */
-.quote-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.quote-item {
-  text-align: center;
-}
-
-.quote-label {
-  font-size: 12px;
-  color: var(--subtext);
-  margin-bottom: 4px;
-}
-
-.quote-value {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* Sections */
-.section {
-  margin-bottom: 20px;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--subtext);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* Announcements */
-.ann-item {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.ann-item:last-child {
-  border-bottom: none;
-}
-
-.ann-date {
-  font-size: 13px;
-  color: var(--subtext);
-  margin-bottom: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-.ann-title {
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-/* Capital Flow */
-.flow-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.flow-item {
-  background: var(--card);
-  border-radius: 8px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-}
-
-.flow-label {
-  font-size: 12px;
-  color: var(--subtext);
-  margin-bottom: 4px;
-}
-
-.flow-value {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-/* Analysis */
-.analysis {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.analysis p {
-  margin-bottom: 10px;
-}
-
-.analysis p:last-child {
-  margin-bottom: 0;
-}
-
-/* Footer */
-.footer {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--subtext);
-  text-align: center;
-}
-
-.refresh-btn {
-  display: inline-block;
-  padding: 10px 24px;
-  background: var(--text);
-  color: var(--bg);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 8px;
-}
-
-.refresh-btn:active {
-  opacity: 0.8;
-}
-
-/* Index Page */
-.index-container {
-  max-width: 480px;
-  margin: 80px auto;
-  text-align: center;
-}
-
-.index-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.index-subtitle {
-  font-size: 15px;
-  color: var(--subtext);
-  margin-bottom: 32px;
-}
-
 .search-box {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
+  margin: 2rem 0 1rem;
 }
-
 .search-input {
   flex: 1;
-  padding: 14px 18px;
-  font-size: 16px;
+  padding: 0.85rem 1.2rem;
   border: 2px solid var(--border);
   border-radius: 10px;
+  font-size: 1.05rem;
   outline: none;
   transition: border-color 0.2s;
 }
-
-.search-input:focus {
-  border-color: var(--text);
-}
-
+.search-input:focus { border-color: var(--accent); }
 .search-btn {
-  padding: 14px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  background: var(--text);
-  color: var(--bg);
+  padding: 0.85rem 1.8rem;
+  background: var(--accent);
+  color: #fff;
   border: none;
   border-radius: 10px;
+  font-size: 1rem;
   cursor: pointer;
-  white-space: nowrap;
+  transition: opacity 0.2s;
+  font-weight: 500;
 }
+.search-btn:hover { opacity: 0.9; }
+.search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.search-btn:active {
-  opacity: 0.8;
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
 }
-
-/* Search Results */
-.results {
-  margin-top: 24px;
-  text-align: left;
-}
-
-.result-item {
-  padding: 14px 18px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background 0.15s;
-}
-
-.result-item:hover {
+.stat {
   background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem;
+  text-align: center;
 }
+.stat-label { font-size: 0.7rem; color: var(--sub); margin-bottom: 0.2rem; }
+.stat-value { font-size: 1.15rem; font-weight: 600; }
 
-.result-code {
-  font-size: 14px;
-  color: var(--subtext);
-  margin-left: 12px;
+.price-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+  margin: 1rem 0;
 }
+.price-main { font-size: 2.8rem; font-weight: 700; }
+.price-sub { margin-top: 0.3rem; display: flex; gap: 1rem; font-size: 1rem; }
+.change-up { color: var(--up); }
+.change-down { color: var(--down); }
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1.2rem;
+  margin: 0.8rem 0;
+}
+.section-title { font-size: 0.85rem; color: var(--sub); margin-bottom: 0.5rem; font-weight: 600; }
+.section-content { font-size: 0.9rem; line-height: 1.6; }
+.section-content table { width: 100%; border-collapse: collapse; }
+.section-content td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.section-content td:first-child { color: var(--sub); width: 40%; }
+
+.loading { text-align: center; padding: 3rem; color: var(--sub); }
+.error { text-align: center; padding: 2rem; color: var(--up); }
+.timestamp { text-align: center; font-size: 0.75rem; color: var(--sub); margin: 1rem 0; }
+.analysis { background: rgba(25,118,210,0.05); border-color: var(--accent); }
 </style>
 </head>
 <body>
 
+<div class="search-box">
+  <input type="text" class="search-input" id="searchInput" placeholder="例如: 600036 / 贵州茅台 / BYH" autocomplete="off" autofocus>
+  <button class="search-btn" id="searchBtn" onclick="searchStock()">查询</button>
+</div>
 
-    <div class="index-container">
-        <div class="stock-name" style="font-size: 32px; margin-bottom: 8px;">Stock Predictor</div>
-        <div class="index-subtitle">输入股票代码、名称或拼音首字母</div>
-        
-        <div class="search-box">
-            <input type="text" class="search-input" id="searchInput" placeholder="例如: 002146 / 荣盛发展 / RS" autofocus>
-            <button class="search-btn" onclick="searchStock()">查询</button>
-        </div>
-        
-        <div class="results" id="results"></div>
-    </div>
+<div id="results"></div>
+
+<script>
+// 常用股票名称 → 代码映射
+const NAME_MAP = {
+  '贵州茅台':'600519','中国平安':'601318','农业银行':'601288','工商银行':'601398',
+  '中国银行':'601988','招商银行':'600036','中国石油':'601857','中国石化':'600028',
+  '中国建筑':'601668','中国移动':'600941','中国电信':'601728','中国联通':'600050',
+  '长江电力':'600900','紫金矿业':'601899','比亚迪':'002594','宁德时代':'300750',
+  '五粮液':'000858','美的集团':'000333','海尔智家':'600690','格力电器':'000651',
+  '恒瑞医药':'600276','药明康德':'603259','迈瑞医疗':'300760','中信证券':'600030',
+  '东方财富':'300059','海通证券':'600837','华泰证券':'601688','保利发展':'600048',
+  '万科A':'000002','龙湖集团':'00960','爱尔眼科':'300015','智飞生物':'300122',
+  '汇川技术':'300124','立讯精密':'002475','海康威视':'002415','京东方A':'000725',
+  '中远海控':'601919','中国中免':'601888','中国神华':'601088','陕西煤业':'601225',
+  '万华化学':'600309','三一重工':'600031','中联重科':'000157','荣盛发展':'002146',
+  '金地集团':'600383','新城控股':'601155','海螺水泥':'600585','华能水电':'600025',
+  '隆基绿能':'601012','通威股份':'600438','阳光电源':'300274','东方电气':'600875',
+};
+
+// 拼音首字母映射
+const PINYIN_MAP = {};
+Object.keys(NAME_MAP).forEach(name => {
+  // 简单映射：取每个字首字母
+  const initials = name.split('').map(c => {
+    const p = {'茅':'M','台':'T','茅':'M','贵':'G','州':'Z','茅':'M'};
+    return p[c] || c[0];
+  }).join('');
+  PINYIN_MAP[initials] = NAME_MAP[name];
+});
+// 手动添加常用简码
+Object.assign(PINYIN_MAP, {
+  'GZMT':'600519','ZGPA':'601318','NY':'601288','GS':'601398','ZG':'601988',
+  'ZS':'600036','ZGSY':'601857','ZGSH':'600028','ZJ':'601668','YD':'600941',
+  'DX':'601728','LT':'600050','CJDL':'600900','ZJ':'601899','BD':'002594',
+  'ND':'300750','WLY':'000858','MD':'000333','HE':'600690',
+  'GL':'000651','HR':'600276','YKD':'603259','MR':'300760','ZX':'600030',
+  'DF':'300059','HT':'600837','HTZQ':'601688','BL':'600048','WK':'000002',
+  'ALK':'300015','ZF':'300123','BFH':'600383','XC':'601155','HD':'600585',
+  'LNG':'600025','LJ':'601012','TW':'600438','YG':'300274','DFDQ':'600875',
+  'RS':'002146','JD':'600383',
+});
+
+function resolveCode(input) {
+  input = input.trim();
+  // 纯数字代码
+  if (/^\d{5,6}$/.test(input)) {
+    return normalizeCode(input);
+  }
+  // 已带 sh/sz 前缀
+  if (/^[hs][a-z]?(\d{6})$/i.test(input)) {
+    return input.toLowerCase().startsWith('sh') ? input.toLowerCase() : 'sz' + input.replace(/^[hs]/i, '').toLowerCase();
+  }
+  // 名称匹配
+  if (NAME_MAP[input]) {
+    return normalizeCode(NAME_MAP[input]);
+  }
+  // 拼音首字母（大写）
+  const upper = input.toUpperCase();
+  if (PINYIN_MAP[upper]) {
+    return normalizeCode(PINYIN_MAP[upper]);
+  }
+  // 名称模糊匹配
+  for (const name in NAME_MAP) {
+    if (name.includes(input) || input.includes(name)) {
+      return normalizeCode(NAME_MAP[name]);
+    }
+  }
+  return null;
+}
+
+function normalizeCode(code) {
+  if (code.startsWith('6')) return 'sh' + code;
+  if (code.startsWith('0') || code.startsWith('3')) return 'sz' + code;
+  if (code.startsWith('9')) return 'sh' + code;
+  return 'sz' + code;
+}
+
+async function searchStock() {
+  const input = document.getElementById('searchInput').value.trim();
+  if (!input) return;
+  
+  const code = resolveCode(input);
+  const btn = document.getElementById('searchBtn');
+  const results = document.getElementById('results');
+  
+  if (!code) {
+    results.innerHTML = '<p style="text-align:center;color:var(--up);padding:2rem;">⚠️ 未找到该股票，请检查名称或代码</p>';
+    return;
+  }
+  
+  btn.disabled = true;
+  results.innerHTML = '<div class="loading">正在获取行情...</div>';
+  
+  try {
+    const url = `https://qt.gtimg.cn/q=${code}`;
+    // 使用 fetch 获取数据
+    const resp = await fetch(url);
+    const text = await resp.text();
     
-    <script>
-    // 股票列表数据 (由Python预生成)
-    const stockList = {"688548": "广钢气体", "688796": "百奥赛图", "688233": "神工股份", "688432": "有研硅", "688198": "佰仁医疗", "688120": "华海清科", "301528": "多浦乐", "301520": "万邦医药", "301307": "美利信", "300436": "广生堂", "300204": "舒泰神", "301033": "迈普医学", "688765": "禾元生物-U", "688336": "三生国健", "688689": "银河微电", "300434": "金石亚药", "301030": "*ST仕净", "300706": "阿石创", "300024": "机器人", "301328": "维峰电子", "301263": "泰恩康", "688629": "华丰科技", "688549": "中巨芯-U", "688596": "正帆科技", "300723": "一品红", "688503": "聚和材料", "688331": "荣昌生物", "300149": "睿智医药", "688105": "诺唯赞", "300346": "南大光电", "688652": "京仪装备", "688382": "益方生物-U", "300488": "恒锋工具", "688578": "艾力斯", "688180": "君实生物-U", "688783": "西安奕材-U", "688545": "兴福电子", "688607": "康众医疗", "300485": "赛升药业", "688106": "金宏气体", "688117": "圣诺生物", "688535": "华海诚科", "688711": "宏微科技", "688530": "欧莱新材", "688450": "光格科技", "688200": "华峰测控", "688506": "百利天恒", "688728": "格科微", "688376": "美埃科技", "688428": "诺诚健华", "688008": "澜起科技", "688068": "热景生物", "688122": "西部超导", "300002": "神州泰岳", "688758": "赛分科技", "688066": "*ST航图", "688037": "芯源微", "688362": "甬矽电子", "301393": "昊帆生物", "688727": "恒坤新材", "688265": "南模生物", "688221": "前沿生物-U", "688103": "国力电子", "301211": "亨迪药业", "301230": "泓博医药", "688126": "沪硅产业", "300199": "翰宇药业", "002808": "恒久退", "300721": "怡达股份", "300343": "联创股份", "688192": "迪哲医药-U", "300260": "新莱应材", "300558": "贝达药业", "688176": "亚虹医药-U", "688356": "XD键凯科", "605081": "退市太和", "688019": "安集科技", "688136": "科兴制药", "300801": "泰和科技", "300357": "我武生物", "300894": "火星人", "000004": "国华退", "688566": "吉贝尔", "688012": "中微公司", "688138": "清溢光电", "688293": "奥浦迈", "688411": "海博思创", "300373": "扬杰科技", "688163": "赛伦生物", "688670": "金迪克", "300236": "上海新阳", "688062": "迈威生物-U", "688235": "百济神州", "688678": "福立旺", "002638": "勤上股份", "688343": "云天励飞-U", "000017": "深中华A", "000751": "锌业股份", "300852": "四会富仕", "002277": "友阿股份"};
-    
-    function searchStock() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (!query) return;
-        
-        const results = [];
-        
-        for (const [code, name] of Object.entries(stockList)) {
-            if (code.includes(query) || name.toLowerCase().includes(query)) {
-                results.push({code, name});
-            }
-        }
-        
-        // 按匹配精度排序
-        results.sort((a, b) => {
-            const aCodeMatch = a.code.includes(query) ? 0 : 1;
-            const bCodeMatch = b.code.includes(query) ? 0 : 1;
-            return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
-        });
-        
-        const resultsDiv = document.getElementById('results');
-        if (results.length === 0) {
-            resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
-            return;
-        }
-        
-        resultsDiv.innerHTML = results.slice(0, 10).map(r => 
-            `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
-                <span>${r.name}</span>
-                <span class="result-code">${r.code}</span>
-            </div>`
-        ).join('');
+    // 解析腾讯行情数据
+    const match = text.match(/v_(\w+)="(.+?)"/);
+    if (!match || !match[2]) {
+      results.innerHTML = '<p style="text-align:center;color:var(--up);padding:2rem;">⚠️ 该股票无行情数据（可能不存在或已退市）</p>';
+      return;
     }
     
-    // 回车搜索
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') searchStock();
-    });
-    </script>
+    const name = match[1];
+    const raw = match[2];
+    const fields = raw.split('~');
     
+    if (!fields || fields.length < 48) {
+      results.innerHTML = '<p style="text-align:center;color:var(--up);padding:2rem;">⚠️ 行情数据解析失败</p>';
+      return;
+    }
+    
+    const stockName = fields[1];
+    const stockCode = fields[2];
+    const price = parseFloat(fields[3]);
+    const prevClose = parseFloat(fields[4]);
+    const open = parseFloat(fields[5]);
+    const volume = parseInt(fields[6]); // 手
+    const buyVolume = parseInt(fields[7]);
+    const sellVolume = parseInt(fields[8]);
+    // fields[9-18] 买一到买五 价/量
+    // fields[19-28] 卖一到卖五 价/量
+    const change = parseFloat(fields[31]); // 涨跌额
+    const changePct = parseFloat(fields[32]); // 涨跌幅
+    const high = parseFloat(fields[33]);
+    const low = parseFloat(fields[34]);
+    const amount = parseFloat(fields[37]); // 万
+    const turnover = fields[38]; // 换手率%
+    const pe = fields[39]; // 市盈率
+    const amplitude = fields[43]; // 振幅
+    const circMarket = fields[44]; // 流通市值 亿
+    const totalMarket = fields[45]; // 总市值 亿
+    const pb = fields[46]; // 市净率
+    const highLimit = fields[47]; // 涨停价
+    const lowLimit = fields[48] || fields[47]; // 跌停价
+    
+    const isUp = change >= 0;
+    const changeClass = isUp ? 'change-up' : 'change-down';
+    const arrow = isUp ? '▲' : '▼';
+    const changeSign = isUp ? '+' : '';
+    
+    const now = new Date();
+    const ts = now.getFullYear() + '-' + 
+               String(now.getMonth()+1).padStart(2,'0') + '-' +
+               String(now.getDate()).padStart(2,'0') + ' ' +
+               String(now.getHours()).padStart(2,'0') + ':' +
+               String(now.getMinutes()).padStart(2,'0') + ':' +
+               String(now.getSeconds()).padStart(2,'0');
+    
+    const html = `
+      <div class="stats">
+        <div class="stat"><div class="stat-label">现价</div><div class="stat-value">${price.toFixed(2)}</div></div>
+        <div class="stat"><div class="stat-label">涨跌</div><div class="stat-value ${changeClass}">${changeSign}${change.toFixed(2)}</div></div>
+        <div class="stat"><div class="stat-label">幅度</div><div class="stat-value ${changeClass}">${changeSign}${changePct.toFixed(2)}%</div></div>
+        <div class="stat"><div class="stat-label">开盘</div><div class="stat-value">${open.toFixed(2)}</div></div>
+        <div class="stat"><div class="stat-label">最高</div><div class="stat-value">${high.toFixed(2)}</div></div>
+        <div class="stat"><div class="stat-label">最低</div><div class="stat-value">${low.toFixed(2)}</div></div>
+      </div>
+      
+      <div class="price-card">
+        <div style="font-size:0.9rem;color:var(--sub);margin-bottom:0.3rem;">${stockName} (${stockCode})</div>
+        <div class="price-main ${changeClass}">${price.toFixed(2)}</div>
+        <div class="price-sub">
+          <span class="${changeClass}">${arrow} ${changeSign}${change.toFixed(2)}</span>
+          <span class="${changeClass}">${changeSign}${changePct.toFixed(2)}%</span>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📊 实时数据</div>
+        <div class="section-content">
+          <table>
+            <tr><td>成交量</td><td>${(volume/10000).toFixed(2)} 万手</td><td>成交额</td><td>${(amount/10000).toFixed(2)} 亿</td></tr>
+            <tr><td>换手率</td><td>${turnover}%</td><td>市盈率</td><td>${pe || '-'}</td></tr>
+            <tr><td>市净率</td><td>${pb || '-'}</td><td>振幅</td><td>${amplitude}%</td></tr>
+            <tr><td>流通市值</td><td>${(circMarket/10000).toFixed(2)} 亿</td><td>总市值</td><td>${(totalMarket/10000).toFixed(2)} 亿</td></tr>
+          </table>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📈 AI 研判</div>
+        <div class="section-content">
+          ${generateAnalysis(price, prevClose, open, high, low, volume, changePct, turnover, pe)}
+        </div>
+      </div>
+      
+      <div class="timestamp">⏱ 更新于 ${ts} · 数据来源：腾讯行情</div>
+    `;
+    
+    results.innerHTML = html;
+    
+  } catch (err) {
+    results.innerHTML = '<p style="text-align:center;color:var(--up);padding:2rem;">⚠️ 网络异常，请稍后重试</p>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function generateAnalysis(price, prevClose, open, high, low, volume, changePct, turnover, pe) {
+  const lines = [];
+  
+  if (changePct > 8) {
+    lines.push('🔴 <strong>大幅上涨：</strong>涨幅超过 8%，可能有利好推动。注意涨停板附近抛压，追高需谨慎。');
+  } else if (changePct > 3) {
+    lines.push('🟠 <strong>明显上涨：</strong>多头占优，动能充足。如非短线已持有，追高需设止损。');
+  } else if (changePct > 0) {
+    lines.push('🟢 <strong>小幅上涨：</strong>温和偏多，日内关注量能是否配合，可适时逢低布局。');
+  } else if (changePct > -3) {
+    lines.push('🔵 <strong>小幅调整：</strong>空头略占优势，关注支撑位，不宜盲目杀跌。');
+  } else if (changePct > -8) {
+    lines.push('🟣 <strong>明显下跌：</strong>抛压较大，建议控制仓位，观望为主，等待企稳信号。');
+  } else {
+    lines.push('⚫ <strong>大幅下跌：</strong>跌幅超 8%，利空风险释放中，短期回避。');
+  }
+  
+  // 换手率分析
+  if (parseFloat(turnover) > 15) {
+    lines.push('📊 <strong>换手率极高</strong>(' + turnover + '%)，主力资金异动，趋势可能面临转折。');
+  } else if (parseFloat(turnover) > 7) {
+    lines.push('📊 <strong>换手活跃</strong>(' + turnover + '%)，资金参与度较高，趋势有望延续。');
+  }
+  
+  // 量价分析
+  if (volume > 500000 && changePct > 3) {
+    lines.push('📈 <strong>放量上涨</strong>：量价配合良好，短期内多头动能较强。');
+  } else if (volume > 500000 && changePct < -3) {
+    lines.push('📉 <strong>放量下跌</strong>：资金出逃明显，短期内谨慎对待。');
+  }
+  
+  return lines.map(l => '<p style="margin-bottom:0.5rem;">' + l + '</p>').join('');
+}
+
+// Enter to search
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') searchStock();
+});
+</script>
 
 </body>
 </html>

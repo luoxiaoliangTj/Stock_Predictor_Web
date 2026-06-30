@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Lookup</title>
+<style>
+:root {
+  --up: #d32f2f;
+  --down: #388e3c;
+  --bg: #ffffff;
+  --card: #f8f9fa;
+  --border: #e0e0e0;
+  --text: #212121;
+  --subtext: #757575;
+  --accent: #1976d2;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px; line-height: 1.6; color: var(--text);
+  background: var(--bg); max-width: 780px; margin: 0 auto; padding: 24px 20px;
+}
+.back { display: inline-block; color: var(--accent); text-decoration: none; margin-bottom: 20px; font-size: 14px; }
+.back:hover { underline; }
+.price-section { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
+.price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.price-name { font-size: 24px; font-weight: 600; }
+.price-code { font-size: 14px; color: var(--subtext); }
+.price-main { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+.change { font-size: 18px; font-weight: 500; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.flat { color: var(--subtext); }
+.timestamp { font-size: 13px; color: var(--subtext); margin-top: 4px; }
+.quote-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.quote-item { text-align: center; }
+.quote-label { font-size: 12px; color: var(--subtext); margin-bottom: 4px; }
+.quote-value { font-size: 16px; font-weight: 600; }
+.section { margin-bottom: 20px; }
+.section-title { font-size: 14px; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.ann-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.ann-item:last-child { border-bottom: none; }
+.ann-date { font-size: 13px; color: var(--subtext); margin-bottom: 4px; }
+.ann-title { font-size: 15px; line-height: 1.5; }
+.flow-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.flow-item { background: var(--card); border-radius: 8px; padding: 12px; border: 1px solid var(--border); }
+.flow-label { font-size: 12px; color: var(--subtext); margin-bottom: 4px; }
+.flow-value { font-size: 16px; font-weight: 600; }
+.analysis { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); line-height: 1.7; font-size: 14px; }
+.status { text-align: center; padding: 40px 20px; color: var(--subtext); }
+.status a { color: var(--accent); }
+.error { color: var(--up); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back">← 返回搜索</a>
+
+<div id="app"></div>
+
+<script>
+(function() {
+  const app = document.getElementById('app');
+  const params = new URLSearchParams(window.location.search);
+  const rawCode = (params.get('code') || '').trim();
+  
+  if (!rawCode) {
+    app.innerHTML = '<div class="status">没有股票代码，<a href="index.html">返回搜索</a></div>';
+    return;
+  }
+
+  // 解析代码格式
+  let prefix, code;
+  if (rawCode.startsWith('sh') || rawCode.startsWith('sz')) {
+    prefix = rawCode.substring(0, 2);
+    code = rawCode.substring(2);
+  } else {
+    code = rawCode;
+    // 根据代码规则判断市场: 6开头=上海(科创板/主板)，其他=深圳
+    prefix = code.startsWith('6') ? 'sh' : 'sz';
+  }
+
+  if (!/^\d{6}$/.test(code)) {
+    app.innerHTML = `<div class="status error">代码 ${rawCode} 格式无效，请输入6位数字代码</div>`;
+    return;
+  }
+
+  const symbol = prefix + code;
+  
+  // 显示 loading
+  app.innerHTML = `<div class="status">正在查询 ${code}...</div>`;
+
+  // 并行获取行情 + 公告 + 资金流向
+  const quoteUrl = `https://qt.gtimg.cn/q=${symbol}`;
+  const announceUrl = `http://np.stock.sohu.com/v2/news/info/query?page=1&count=10&code=${symbol}&type=1,2,4`;
+
+  // 获取行情
+  const fetchQuote = async () => {
+    try {
+      const resp = await fetch(quoteUrl);
+      const text = await resp.text();
+      // v_sz002146="1~...~0020146~荣盛发展~...";
+      const match = text.match(/v_(\w+)="(.*?)"/);
+      if (!match) return null;
+      const data = match[2].split('~');
+      if (data.length < 48) return null;
+      return {
+        symbol: data[2],
+        name: data[1],
+        price: data[3],
+        prevClose: data[4],
+        open: data[5],
+        high: data[33],
+        low: data[34],
+        change: data[31],
+        changePct: data[32],
+        volume: data[6],  // 手
+        amount: data[37], // 万
+        turnover: data[38],
+        pe: data[39],
+        amplitude: data[43],
+        marketCap: data[45], // 亿
+        floatCap: data[44],
+        pb: data[46],
+        limitUp: data[47],
+        limitDown: data[48],
+        timeStr: data[30]
+      };
+    } catch (e) {
+      console.error('Quote fetch error:', e);
+      return null;
+    }
+  };
+
+  // 获取公告
+  const fetchAnnounce = async () => {
+    try {
+      const resp = await fetch(announceUrl);
+      const data = await resp.json();
+      if (data && data.list) {
+        return data.list.map(a => ({
+          date: (a.newsTime || a.newsDate || '').substring(0, 10),
+          title: a.title
+        })).filter(a => a.title && a.date);
+      }
+      return [];
+    } catch (e) {
+      // 备选：尝试东方财富公告接口
+      try {
+        const resp = await fetch(`https://np-anotice-stock.eastmoney.com/api/security/ann?sr=-1&page_size=10&page_index=1&ann_type=SHA,SZA,BJA,FK&client_source=web&stock_list=${symbol}&f_node=0&s_node=0`);
+        const data = await resp.json();
+        if (data && data.data && data.data.list) {
+          return data.data.list.map(a => ({
+            date: (a.art_code || '').substring(0, 10) || new Date(a.notice_date).toISOString().substring(0, 10),
+            title: a.title || a.arti_title || ''
+          })).filter(a => a.title);
+        }
+        return [];
+      } catch (e2) {
+        console.error('Announce fetch error:', e2);
+        return [];
+      }
+    }
+  };
+
+  // 获取资金流向 (东方财富)
+  const fetchFlow = async () => {
+    try {
+      const resp = await push2.eastmoney.com/api/qt/stock/fflow/daykline/get?lmt=1&klt=101&fields1=f1,f2,f3,f7&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63,f64,f65&secid=${prefix === 'sh' ? '1' : '0'}.${code}`;
+      const data = await resp.json();
+      if (data && data.data && data.data.klines && data.data.klines.length > 0) {
+        const latest = data.data.klines[data.data.klines.length - 1].split(',');
+        return {
+          date: latest[0],
+          mainIn: latest[1],
+          smallIn: latest[2],
+          midIn: latest[3],
+          bigIn: latest[4],
+          superIn: latest[5]
+        };
+      }
+      return null;
+    } catch (e) {
+      console.error('Flow fetch error:', e);
+      return null;
+    }
+  };
+
+  // 主渲染
+  Promise.all([fetchQuote(), fetchAnnounce(), fetchFlow()]).then(([quote, announcements, flow]) => {
+    if (!quote || !quote.name) {
+      app.innerHTML = `<div class="status error">未找到股票 ${code}，请检查代码是否正确<br><br>
+        <small>上海(sh): 600xxx, 601xxx, 603xxx, 688xxx<br>
+        深圳(sz): 000xxx, 001xxx, 002xxx, 300xxx, 301xxx<br>
+        北交所: 4xxxxx, 8xxxxx, 920xxx</small><br><br>
+        <a href="index.html">返回搜索</a></div>`;
+      return;
+    }
+
+    const price = parseFloat(quote.price);
+    const change = parseFloat(quote.change || 0);
+    const changePct = parseFloat(quote.changePct || 0);
+    const prevClose = parseFloat(quote.prevClose);
+    
+    let changeClass = 'flat';
+    if (change > 0) changeClass = 'up';
+    else if (change < 0) changeClass = 'down';
+    
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    
+    // AI 简单分析
+    let analysisText = '';
+    if (changePct > 5) analysisText = `涨停附近，远高于均价。当前价距涨停价 ${quote.limitUp} 元。注意风险。`;
+    else if (changePct > 2) analysisText = `涨幅 ${quote.changePct}%，市场情绪偏强。换手率 ${quote.turnover}%，${parseFloat(quote.turnover) > 5 ? '交投活跃，' : '交投平稳，'}量价配合${parseFloat(quote.turnover) > 3 && changePct > 0 ? '良好' : '一般'}。`;
+    else if (changePct < -5) analysisText = `跌停附近。距跌停价 ${quote.limitDown} 元，谨慎抄底。`;
+    else if (changePct < -2) analysisText = `跌幅 ${quote.changePct}%，个股偏弱。${parseFloat(quote.turnover) > 5 ? '放量下跌，建议观望。' : '缩量调整，注意支撑。'}`;
+    else analysisText = `震荡整理，振幅 ${quote.amplitude}%，${Math.abs(changePct) < 1 ? '波动较小' : '波动适中'}。`;
+
+    // 生成公告 HTML
+    let annHtml = '';
+    if (announcements && announcements.length > 0) {
+      annHtml = announcements.slice(0, 10).map(a => `
+        <div class="ann-item">
+          <div class="ann-date">${a.date}</div>
+          <div class="ann-title">${a.title}</div>
+        </div>
+      `).join('');
+    } else {
+      annHtml = '<div class="ann-item"><div class="ann-title">暂无公告</div></div>';
+    }
+
+    // 资金流向 HTML
+    let flowHtml = '';
+    if (flow && flow.mainIn !== '-') {
+      const formatWan = (v) => {
+        const n = parseFloat(v);
+        if (isNaN(n)) return '-';
+        if (Math.abs(n) > 100000000) return (n / 100000000).toFixed(2) + '亿';
+        if (Math.abs(n) > 10000) return (n / 10000).toFixed(2) + '万';
+        return n.toFixed(2);
+      };
+      flowHtml = `<div class="section">
+        <div class="section-title">资金流向</div>
+        <div class="flow-grid">
+          <div class="flow-item">
+            <div class="flow-label">主力净流入</div>
+            <div class="flow-value ${parseFloat(flow.mainIn) >= 0 ? 'up' : 'down'}">${formatWan(flow.mainIn)}</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-label">超大单净流入</div>
+            <div class="flow-value ${parseFloat(flow.superIn) >= 0 ? 'up' : 'down'}">${formatWan(flow.superIn)}</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-label">大单净流入</div>
+            <div class="flow-value ${parseFloat(flow.bigIn) >= 0 ? 'up' : 'down'}">${formatWan(flow.bigIn)}</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-label">中单净流入</div>
+            <div class="flow-value ${parseFloat(flow.midIn) >= 0 ? 'up' : 'down'}">${formatWan(flow.midIn)}</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-label">小单净流入</div>
+            <div class="flow-value ${parseFloat(flow.smallIn) >= 0 ? 'up' : 'down'}">${formatWan(flow.smallIn)}</div>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      flowHtml = `<div class="section"><div class="section-title">资金流向</div><div class="ann-item"><div class="ann-title">暂无数据</div></div></div>`;
+    }
+
+    app.innerHTML = `
+      <div class="price-section">
+        <div class="price-row">
+          <div>
+            <div class="price-name">${quote.name}</div>
+            <div class="stock-code">${quote.symbol || code}</div>
+          </div>
+        </div>
+        <div class="price-row">
+          <span class="price main">${price.toFixed(2)}</span>
+          <span class="change ${changeClass}">${change >= 0 ? '+' : ''}${change.toFixed(2)}</span>
+          <span class="change ${changeClass}">(${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)</span>
+        </div>
+        <div class="timestamp">同步时间: ${timestamp} &nbsp;|&nbsp; 交易日: ${(quote.timeStr || '').substring(0, 8) || '未知'}</div>
+        <div class="quote-grid">
+          <div class="quote-item"><div class="quote-label">开盘</div><div class="quote-value">${parseFloat(quote.open).toFixed(2)}</div></div>
+          <div class="quote-item"><div class="quote-label">最高</div><div class="quote-value up">${parseFloat(quote.high).toFixed(2)}</div></div>
+          <div class="quote-item"><div class="quote-label">最低</div><div class="quote-value down">${parseFloat(quote.low).toFixed(2)}</div></div>
+          <div class="quote-item"><div class="quote-label">昨收</div><div class="quote-value">${prevClose.toFixed(2)}</div></div>
+          <div class="quote-item"><div class="quote-label">换手率</div><div class="quote-value">${(quote.turnover ? (+quote.turnover).toFixed(2) : '-')}%</div></div>
+          <div class="quote-item"><div class="quote-label">市盈率</div><div class="quote-value">${quote.pe && quote.pe != '0' ? (+quote.pe).toFixed(2) : '-'}</div></div>
+          <div class="quote-item"><div class="quote-label">量比</div><div class="quote-value">${quote.volume && quote.amount ? ((+quote.volume) / (+quote.amount === 0 ? 1 : +quote.amount) * 100).toFixed(2) : '-'}</div></div>
+          <div class="quote-item"><div class="quote-label">振幅</div><div class="quote-value">${quote.amplitude ? (+quote.amplitude).toFixed(2) : '-'}%</div></div>
+          <div class="quote-item"><div class="quote-label">总市值</div><div class="quote-value">${(quote.marketCap && quote.marketCap != '0') ? (+quote.marketCap).toFixed(1) + '亿' : '-'}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">最新公告</div>
+        ${annHtml}
+      </div>
+
+      ${flowHtml}
+
+      <div class="section">
+        <div class="section-title">AI 研判（基于当前数据）</div>
+        <div class="analysis">${analysisText}</div>
+      </div>
+    `;
+  });
+})();
+</script>
+</body>
+</html>

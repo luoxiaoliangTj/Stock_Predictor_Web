@@ -147,29 +147,47 @@ class StockDataFetcher:
     def get_stock_name_map(self) -> Dict[str, str]:
         """
         获取股票代码-名称映射表 (用于搜索)
+        东方财富API每页限制100条，需要翻页获取全部A股
         """
-        # 从两个交易所获取股票列表
         stocks = {}
+        url = "https://push2.eastmoney.com/api/qt/clist/get"
         
-        # 上证A股
-        url_sh = "https://push2.eastmoney.com/api/qt/clist/get?cb=jQuery&pn=1&pz=5000&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f12,f14"
-        # 深证A股
-        url_sz = "https://push2.eastmoney.com/api/qt/clist/get?cb=jQuery&pn=1&pz=5000&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f12,f14"
-        
-        for url in [url_sh, url_sz]:
+        page = 1
+        while True:
+            params = {
+                'cb': 'jQuery',
+                'pn': page,
+                'pz': 100,
+                'po': 1,
+                'np': 1,
+                'fltt': 2,
+                'invt': 2,
+                'fid': 'f3',
+                'fs': 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23',
+                'fields': 'f12,f14'
+            }
             try:
-                resp = self.session.get(url, timeout=15)
+                resp = self.session.get(url, params=params, timeout=15)
                 text = resp.text.strip()
                 json_str = text[text.index('(') + 1 : text.rindex(')')]
                 data = json.loads(json_str)
                 
-                for item in data.get('data', {}).get('diff', []):
+                diff = data.get('data', {}).get('diff', [])
+                if not diff:
+                    break
+                
+                for item in diff:
                     code = item.get('f12', '')
                     name = item.get('f14', '')
                     if code and name:
                         stocks[code] = name
+                
+                if len(diff) < 100:
+                    break
+                page += 1
             except Exception as e:
-                print(f"获取股票列表失败: {e}")
+                print(f"获取股票列表第{page}页失败: {e}")
+                break
         
         return stocks
 
