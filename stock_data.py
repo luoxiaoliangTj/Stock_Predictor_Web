@@ -25,8 +25,7 @@ class StockDataFetcher:
         获取实时行情 (腾讯API)
         格式: https://qt.gtimg.cn/q=sz002146 或 https://qt.gtimg.cn/q=sh601288
         """
-        # 判断交易所前缀
-        prefix = "sh" if code.startswith("6") else "sz"
+        prefix = "sh" if code.startswith(("6", "9")) else "sz"
         url = f"https://qt.gtimg.cn/q={prefix}{code}"
         
         try:
@@ -34,7 +33,6 @@ class StockDataFetcher:
             resp.encoding = 'gbk'
             text = resp.text.strip()
             
-            # 解析格式: v_sz002146="51~荣盛发展~002146~1.04~..."
             match = re.search(r'"(.+)"', text)
             if not match:
                 return None
@@ -43,7 +41,6 @@ class StockDataFetcher:
             if len(parts) < 50:
                 return None
             
-            # 解析时间 (格式: 20260629161436)
             time_str = parts[30] if len(parts) > 30 else ""
             if len(time_str) == 14:
                 dt = datetime.strptime(time_str, "%Y%m%d%H%M%S")
@@ -59,15 +56,15 @@ class StockDataFetcher:
                 'open': float(parts[5]) if parts[5] else 0.0,
                 'high': float(parts[33]) if len(parts) > 33 and parts[33] else 0.0,
                 'low': float(parts[34]) if len(parts) > 34 and parts[34] else 0.0,
-                'volume': int(parts[6]) if parts[6] else 0,  # 成交量(手)
-                'turnover': float(parts[37]) if len(parts) > 37 and parts[37] else 0.0,  # 成交额(万)
+                'volume': int(parts[6]) if parts[6] else 0,
+                'turnover': float(parts[37]) if len(parts) > 37 and parts[37] else 0.0,
                 'change': float(parts[31]) if len(parts) > 31 and parts[31] else 0.0,
                 'change_pct': float(parts[32]) if len(parts) > 32 and parts[32] else 0.0,
                 'pe': float(parts[39]) if len(parts) > 39 and parts[39] else 0.0,
                 'pb': float(parts[46]) if len(parts) > 46 and parts[46] else 0.0,
-                'amplitude': float(parts[43]) if len(parts) > 43 and parts[43] else 0.0,  # 振幅%
-                'market_cap': float(parts[45]) if len(parts) > 45 and parts[45] else 0.0,  # 总市值(亿)
-                'float_cap': float(parts[44]) if len(parts) > 44 and parts[44] else 0.0,  # 流通市值(亿)
+                'amplitude': float(parts[43]) if len(parts) > 43 and parts[43] else 0.0,
+                'market_cap': float(parts[45]) if len(parts) > 45 and parts[45] else 0.0,
+                'float_cap': float(parts[44]) if len(parts) > 44 and parts[44] else 0.0,
                 'timestamp': timestamp
             }
         except Exception as e:
@@ -89,16 +86,17 @@ class StockDataFetcher:
             resp = self.session.get(url, timeout=10)
             text = resp.text.strip()
             
-            # 去掉 jQuery( 和末尾的 )
             json_str = text[text.index('(') + 1 : text.rindex(')')]
             data = json.loads(json_str)
             
             announcements = []
-            for item in data.get('data', {}).get('list', []):
-                announcements.append({
-                    'date': item.get('notice_date', '')[:10],
-                    'title': item.get('title_ch', '')
-                })
+            data_list = data.get('data', {})
+            if isinstance(data_list, dict):
+                for item in data_list.get('list', []):
+                    announcements.append({
+                        'date': item.get('notice_date', '')[:10],
+                        'title': item.get('title_ch', '')
+                    })
             
             return announcements
         except Exception as e:
@@ -109,7 +107,6 @@ class StockDataFetcher:
         """
         获取资金流向 (东方财富API)
         """
-        # 判断交易所
         secid = f"0.{code}" if code.startswith(("0", "3")) else f"1.{code}"
         url = (
             f"https://push2.eastmoney.com/api/qt/stock/fflow/daykline/get"
@@ -124,20 +121,21 @@ class StockDataFetcher:
             json_str = text[text.index('(') + 1 : text.rindex(')')]
             data = json.loads(json_str)
             
-            klines = data.get('data', {}).get('klines', [])
+            # 兼容 data.get('data', {}) 可能返回 None 的情况
+            data_section = data.get('data') or {}
+            klines = data_section.get('klines', [])
             if not klines:
                 return None
             
-            # 取最近一天
-            latest = klines[-1].split(',')
+            latest = klines[-1].split(',') if klines else []
             if len(latest) >= 6:
                 return {
                     'date': latest[0],
-                    'main_inflow': float(latest[1]) if latest[1] != '-' else 0.0,  # 主力净流入
-                    'small_inflow': float(latest[2]) if latest[2] != '-' else 0.0,  # 小单净流入
-                    'mid_inflow': float(latest[3]) if latest[3] != '-' else 0.0,   # 中单净流入
-                    'big_inflow': float(latest[4]) if latest[4] != '-' else 0.0,   # 大单净流入
-                    'super_inflow': float(latest[5]) if latest[5] != '-' else 0.0  # 超大单净流入
+                    'main_inflow': float(latest[1]) if latest[1] != '-' else 0.0,
+                    'small_inflow': float(latest[2]) if latest[2] != '-' else 0.0,
+                    'mid_inflow': float(latest[3]) if latest[3] != '-' else 0.0,
+                    'big_inflow': float(latest[4]) if latest[4] != '-' else 0.0,
+                    'super_inflow': float(latest[5]) if latest[5] != '-' else 0.0
                 }
             return None
         except Exception as e:
@@ -200,21 +198,17 @@ def search_stock(query: str, stock_map: Dict[str, str]) -> List[Dict[str, str]]:
     query = query.strip().lower()
     
     for code, name in stock_map.items():
-        # 代码匹配
         if query in code:
             results.append({'code': code, 'name': name, 'match': 'code'})
-        # 名称匹配
         elif query in name.lower():
             results.append({'code': code, 'name': name, 'match': 'name'})
     
-    # 按匹配精度排序: 代码 > 名称
     results.sort(key=lambda x: (0 if x['match'] == 'code' else 1, x['code']))
     
-    return results[:10]  # 最多返回10个
+    return results[:10]
 
 
 if __name__ == "__main__":
-    # 测试
     fetcher = StockDataFetcher()
     
     print("=== 测试行情获取 ===")
@@ -236,3 +230,5 @@ if __name__ == "__main__":
     if flow:
         print(f"日期: {flow['date']}")
         print(f"主力净流入: {flow['main_inflow']:.2f}万")
+    else:
+        print("获取失败")
