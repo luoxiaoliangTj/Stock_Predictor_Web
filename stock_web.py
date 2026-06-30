@@ -275,8 +275,8 @@ const PINYIN_MAP = {
 
 function resolveCode(input) {
     input = input.trim();
-    if (/^\\d{5,6}$/.test(input)) return normalizeCode(input);
-    if (/^[hs][a-z]?(\\d{6})$/i.test(input)) {
+    if (/^\d{5,6}$/.test(input)) return normalizeCode(input);
+    if (/^[hs][a-z]?(\d{6})$/i.test(input)) {
         const n = input.replace(/^[hs]/i,'').toLowerCase();
         return normalizeCode(n);
     }
