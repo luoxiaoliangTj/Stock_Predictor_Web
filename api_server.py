@@ -89,18 +89,44 @@ def clear_cache():
 
 @app.route('/api/stock/search', methods=['GET'])
 def search_stock():
-    """股票搜索接口 - 实时调用东方财富API"""
+    """股票搜索接口 - 实时调用东方财富API单页搜索"""
     query = request.args.get('q', '').strip()
     
     if not query:
         return jsonify({'error': '缺少搜索参数 q'}), 400
     
     try:
-        # 获取最新股票列表
-        stock_map = stock_fetcher.get_stock_name_map()
-        # 搜索匹配的股票
-        from stock_data import search_stock as search_func
-        results = search_func(query, stock_map)
+        # 直接调用东方财富API单页搜索（50条）
+        url = "https://push2.eastmoney.com/api/qt/clist/get"
+        params = {
+            'pn': 1,
+            'pz': 50,
+            'po': 1,
+            'np': 1,
+            'fltt': 2,
+            'invt': 2,
+            'fid': 'f3',
+            'fs': 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23',
+            'fields': 'f12,f14',
+            'search': query
+        }
+        
+        resp = stock_fetcher.session.get(url, params=params, timeout=10)
+        text = resp.text.strip()
+        
+        # 提取JSON数据
+        json_str = text[text.index('(') + 1 : text.rindex(')')]
+        data = json.loads(json_str)
+        
+        diff = data.get('data', {}).get('diff', [])
+        
+        results = []
+        for item in diff:
+            code = item.get('f12', '')
+            name = item.get('f14', '')
+            if code and name:
+                results.append({'code': code, 'name': name})
+        
         return jsonify(results)
     except Exception as e:
         return jsonify({'error': f'搜索失败: {str(e)}'}), 500
