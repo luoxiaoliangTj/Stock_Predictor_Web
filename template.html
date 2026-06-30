@@ -125,6 +125,21 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.section-title .analyze-btn {
+  margin-left: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  background: var(--up);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.section-title .analyze-btn:hover {
+  opacity: 0.9;
+}
+
 /* Announcements */
 .ann-item {
   padding: 12px 0;
@@ -189,6 +204,18 @@ body {
 
 .analysis p:last-child {
   margin-bottom: 0;
+}
+
+/* Deep Analysis */
+.analysis.deep-analysis .loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--subtext);
+}
+
+.analysis.deep-analysis pre {
+  white-space: pre-wrap;
+  font-size: 14px;
 }
 
 /* Footer */
@@ -304,6 +331,53 @@ body {
 <body>
 
 {{body}}
+
+<script>
+// 深度分析API配置
+const ANALYSIS_API_BASE = 'http://localhost:5000';
+
+// 加载深度分析
+async function loadDeepAnalysis(code) {
+    const container = document.getElementById('deep-analysis');
+    if (!container) return;
+    
+    // 检查是否已加载
+    if (container.dataset.loaded === 'true') {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        return;
+    }
+    
+    // 显示加载中
+    container.innerHTML = '<div class="loading">分析中，请稍候...</div>';
+    container.style.display = 'block';
+    
+    try {
+        const response = await fetch(`${ANALYSIS_API_BASE}/analyze?code=${code}`);
+        if (!response.ok) {
+            throw new Error(`API错误: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.analysis && data.analysis !== '分析失败') {
+            container.innerHTML = `<pre>${escapeHtml(data.analysis)}</pre>`;
+        } else {
+            container.innerHTML = '<div class="loading">分析失败，请稍后重试</div>';
+        }
+        
+        container.dataset.loaded = 'true';
+    } catch (error) {
+        container.innerHTML = `<div class="loading">加载失败: ${error.message}</div>`;
+    }
+}
+
+// HTML转义防止XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
 
 </body>
 </html>

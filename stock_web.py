@@ -79,7 +79,7 @@ def generate_analysis(quote: dict, announcements: list, flow: dict) -> str:
     return "\n".join(analysis_parts)
 
 
-def generate_stock_page(code: str, fetcher: StockDataFetcher) -> str:
+def generate_stock_page(code: str, fetcher: StockDataFetcher, include_deep_analysis: bool = True) -> str:
     """生成单个股票的完整HTML页面"""
     
     # 获取数据
@@ -124,86 +124,94 @@ def generate_stock_page(code: str, fetcher: StockDataFetcher) -> str:
                 <div class="flow-value {color_class}">{format_number(value, '元')}</div>
             </div>"""
     
+    # 深度分析部分
+    deep_analysis_html = ""
+    if include_deep_analysis:
+        deep_analysis_html = f"""
+    <div class="section">
+        <div class="section-title">
+            深度分析 
+            <button class="analyze-btn" data-code="{quote['code']}" onclick="loadDeepAnalysis('{quote['code']}')">AI深度分析</button>
+        </div>
+        <div id="deep-analysis" class="analysis deep-analysis" style="display: none;">
+            <div class="loading">分析中，请稍候...</div>
+        </div>
+    </div>"""
+    
     # 组装页面
     body = f"""
-    <div class="header">
-        <div class="stock-name">{quote['name']}</div>
-        <div class="stock-code">{quote['code']}</div>
+<div class="header">
+    <div class="stock-name">{quote['name']}</div>
+    <div class="stock-code">{quote['code']}</div>
+</div>
+
+<div class="price-section">
+    <div class="price-row">
+        <span class="price">{quote['price']}</span>
+        <span class="change {change_class}">{change_sign}{quote['change']}</span>
+        <span class="change {change_class}">{change_sign}{quote['change_pct']}%</span>
     </div>
+    <div class="timestamp">数据时间: {quote['timestamp']}</div>
     
-    <div class="price-section">
-        <div class="price-row">
-            <span class="price">{quote['price']}</span>
-            <span class="change {change_class}">{change_sign}{quote['change']}</span>
-            <span class="change {change_class}">{change_sign}{quote['change_pct']}%</span>
+    <div class="quote-grid">
+        <div class="quote-item">
+            <div class="quote-label">今开</div>
+            <div class="quote-value">{quote['open']}</div>
         </div>
-        <div class="timestamp">数据时间: {quote['timestamp']}</div>
-        
-        <div class="quote-grid">
-            <div class="quote-item">
-                <div class="quote-label">今开</div>
-                <div class="quote-value">{quote['open']}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">最高</div>
-                <div class="quote-value">{quote['high']}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">最低</div>
-                <div class="quote-value">{quote['low']}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">成交量</div>
-                <div class="quote-value">{format_number(quote['volume'], '手')}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">成交额</div>
-                <div class="quote-value">{format_number(quote['turnover'], '元')}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">振幅</div>
-                <div class="quote-value">{quote['amplitude']}%</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">市盈率</div>
-                <div class="quote-value">{quote['pe'] if quote['pe'] > 0 else '-'}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">市净率</div>
-                <div class="quote-value">{quote['pb'] if quote['pb'] > 0 else '-'}</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">总市值</div>
-                <div class="quote-value">{format_number(quote['market_cap'], '亿')}</div>
-            </div>
+        <div class="quote-item">
+            <div class="quote-label">最高</div>
+            <div class="quote-value">{quote['high']}</div>
         </div>
-    </div>
-    
-    <div class="section">
-        <div class="section-title">最新公告</div>
-        {ann_html}
-    </div>
-    
-    <div class="section">
-        <div class="section-title">资金流向 ({flow['date'] if flow else '暂无'})</div>
-        <div class="flow-grid">
-            {flow_html}
+        <div class="quote-item">
+            <div class="quote-label">最低</div>
+            <div class="quote-value">{quote['low']}</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">成交量</div>
+            <div class="quote-value">{format_number(quote['volume'], '手')}</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">成交额</div>
+            <div class="quote-value">{format_number(quote['turnover'], '元')}</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">振幅</div>
+            <div class="quote-value">{quote['amplitude']}%</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">市盈率</div>
+            <div class="quote-value">{quote['pe'] if quote['pe'] > 0 else '-'}</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">市净率</div>
+            <div class="quote-value">{quote['pb'] if quote['pb'] > 0 else '-'}</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">总市值</div>
+            <div class="quote-value">{format_number(quote['market_cap'], '亿')}</div>
         </div>
     </div>
-    
-    <div class="section">
-        <div class="section-title">实时研判</div>
-        <div class="analysis">
-            {analysis}
-        </div>
+</div>
+
+<div class="section">
+    <div class="section-title">最新公告</div>
+    {ann_html}
+</div>
+
+<div class="section">
+    <div class="section-title">资金流向 ({flow['date'] if flow else '暂无'})</div>
+    <div class="flow-grid">
+        {flow_html}
     </div>
-    
-    <div class="footer">
-        <p>数据来源: 腾讯财经 + 东方财富</p>
-        <p>生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-        <button class="refresh-btn" onclick="location.reload()">刷新数据</button>
-    </div>
-    """
+</div>
+
+{deep_analysis_html}
+
+<div class="footer">
+    <p>数据来源: 腾讯财经 + 东方财富</p>
+    <p>生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+    <button class="refresh-btn" onclick="location.reload()">刷新数据</button>
+</div>"""
     
     # 读取模板并替换
     template_path = Path(__file__).parent / "template.html"
@@ -221,61 +229,60 @@ def generate_index_page(fetcher: StockDataFetcher) -> str:
     """生成搜索首页"""
     
     body = """
-    <div class="index-container">
-        <div class="stock-name" style="font-size: 32px; margin-bottom: 8px;">Stock Predictor</div>
-        <div class="index-subtitle">输入股票代码、名称或拼音首字母</div>
-        
-        <div class="search-box">
-            <input type="text" class="search-input" id="searchInput" placeholder="例如: 002146 / 荣盛发展 / RS" autofocus>
-            <button class="search-btn" onclick="searchStock()">查询</button>
-        </div>
-        
-        <div class="results" id="results"></div>
+<div class="index-container">
+    <div class="stock-name" style="font-size: 32px; margin-bottom: 8px;">Stock Predictor</div>
+    <div class="index-subtitle">输入股票代码、名称或拼音首字母</div>
+    
+    <div class="search-box">
+        <input type="text" class="search-input" id="searchInput" placeholder="例如: 002146 / 荣盛发展 / RS" autofocus>
+        <button class="search-btn" onclick="searchStock()">查询</button>
     </div>
     
-    <script>
-    // 股票列表数据 (由Python预生成)
-    const stockList = __STOCK_LIST_PLACEHOLDER__;
+    <div class="results" id="results"></div>
+</div>
+
+<script>
+// 股票列表数据 (由Python预生成)
+const stockList = __STOCK_LIST_PLACEHOLDER__;
+
+function searchStock() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (!query) return;
     
-    function searchStock() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (!query) return;
-        
-        const results = [];
-        
-        for (const [code, name] of Object.entries(stockList)) {
-            if (code.includes(query) || name.toLowerCase().includes(query)) {
-                results.push({code, name});
-            }
+    const results = [];
+    
+    for (const [code, name] of Object.entries(stockList)) {
+        if (code.includes(query) || name.toLowerCase().includes(query)) {
+            results.push({code, name});
         }
-        
-        // 按匹配精度排序
-        results.sort((a, b) => {
-            const aCodeMatch = a.code.includes(query) ? 0 : 1;
-            const bCodeMatch = b.code.includes(query) ? 0 : 1;
-            return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
-        });
-        
-        const resultsDiv = document.getElementById('results');
-        if (results.length === 0) {
-            resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
-            return;
-        }
-        
-        resultsDiv.innerHTML = results.slice(0, 10).map(r => 
-            `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
-                <span>${r.name}</span>
-                <span class="result-code">${r.code}</span>
-            </div>`
-        ).join('');
     }
     
-    // 回车搜索
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') searchStock();
+    // 按匹配精度排序
+    results.sort((a, b) => {
+        const aCodeMatch = a.code.includes(query) ? 0 : 1;
+        const bCodeMatch = b.code.includes(query) ? 0 : 1;
+        return aCodeMatch - bCodeMatch || a.code.localeCompare(b.code);
     });
-    </script>
-    """
+    
+    const resultsDiv = document.getElementById('results');
+    if (results.length === 0) {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#757575; padding:20px;">未找到匹配的股票</p>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = results.slice(0, 10).map(r => 
+        `<div class="result-item" onclick="window.location.href='generated/${r.code}.html'">
+            <span>${r.name}</span>
+            <span class="result-code">${r.code}</span>
+        </div>`
+    ).join('');
+}
+
+// 回车搜索
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') searchStock();
+});
+</script>"""
     
     # 读取模板
     template_path = Path(__file__).parent / "template.html"

@@ -125,6 +125,21 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.section-title .analyze-btn {
+  margin-left: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  background: var(--up);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.section-title .analyze-btn:hover {
+  opacity: 0.9;
+}
+
 /* Announcements */
 .ann-item {
   padding: 12px 0;
@@ -189,6 +204,18 @@ body {
 
 .analysis p:last-child {
   margin-bottom: 0;
+}
+
+/* Deep Analysis */
+.analysis.deep-analysis .loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--subtext);
+}
+
+.analysis.deep-analysis pre {
+  white-space: pre-wrap;
+  font-size: 14px;
 }
 
 /* Footer */
@@ -304,62 +331,62 @@ body {
 <body>
 
 
-    <div class="header">
-        <div class="stock-name">农业银行</div>
-        <div class="stock-code">601288</div>
+<div class="header">
+    <div class="stock-name">农业银行</div>
+    <div class="stock-code">601288</div>
+</div>
+
+<div class="price-section">
+    <div class="price-row">
+        <span class="price">6.07</span>
+        <span class="change down">-0.17</span>
+        <span class="change down">-2.72%</span>
     </div>
+    <div class="timestamp">数据时间: 2026-06-30 14:46:26</div>
     
-    <div class="price-section">
-        <div class="price-row">
-            <span class="price">6.09</span>
-            <span class="change down">-0.15</span>
-            <span class="change down">-2.4%</span>
+    <div class="quote-grid">
+        <div class="quote-item">
+            <div class="quote-label">今开</div>
+            <div class="quote-value">6.2</div>
         </div>
-        <div class="timestamp">数据时间: 2026-06-30 11:03:05</div>
-        
-        <div class="quote-grid">
-            <div class="quote-item">
-                <div class="quote-label">今开</div>
-                <div class="quote-value">6.2</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">最高</div>
-                <div class="quote-value">6.24</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">最低</div>
-                <div class="quote-value">6.09</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">成交量</div>
-                <div class="quote-value">147.45万手</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">成交额</div>
-                <div class="quote-value">9.04万元</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">振幅</div>
-                <div class="quote-value">2.4%</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">市盈率</div>
-                <div class="quote-value">7.24</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">市净率</div>
-                <div class="quote-value">0.77</div>
-            </div>
-            <div class="quote-item">
-                <div class="quote-label">总市值</div>
-                <div class="quote-value">2.13万亿</div>
-            </div>
+        <div class="quote-item">
+            <div class="quote-label">最高</div>
+            <div class="quote-value">6.24</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">最低</div>
+            <div class="quote-value">6.05</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">成交量</div>
+            <div class="quote-value">304.92万手</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">成交额</div>
+            <div class="quote-value">18.60万元</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">振幅</div>
+            <div class="quote-value">3.04%</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">市盈率</div>
+            <div class="quote-value">7.22</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">市净率</div>
+            <div class="quote-value">0.76</div>
+        </div>
+        <div class="quote-item">
+            <div class="quote-label">总市值</div>
+            <div class="quote-value">2.12万亿</div>
         </div>
     </div>
+</div>
+
+<div class="section">
+    <div class="section-title">最新公告</div>
     
-    <div class="section">
-        <div class="section-title">最新公告</div>
-        
         <div class="ann-item">
             <div class="ann-date">2026-06-27</div>
             <div class="ann-title">农业银行:北京市金杜律师事务所关于中国农业银行股份有限公司2025年度股东会的法律意见书</div>
@@ -400,30 +427,78 @@ body {
             <div class="ann-date">2026-05-08</div>
             <div class="ann-title">农业银行:农业银行H股公告(证券变动月报表)</div>
         </div>
+</div>
+
+<div class="section">
+    <div class="section-title">资金流向 (暂无)</div>
+    <div class="flow-grid">
+        
     </div>
-    
+</div>
+
+
     <div class="section">
-        <div class="section-title">资金流向 (暂无)</div>
-        <div class="flow-grid">
-            
+        <div class="section-title">
+            深度分析 
+            <button class="analyze-btn" data-code="601288" onclick="loadDeepAnalysis('601288')">AI深度分析</button>
+        </div>
+        <div id="deep-analysis" class="analysis deep-analysis" style="display: none;">
+            <div class="loading">分析中，请稍候...</div>
         </div>
     </div>
+
+<div class="footer">
+    <p>数据来源: 腾讯财经 + 东方财富</p>
+    <p>生成时间: 2026-06-30 14:46:28</p>
+    <button class="refresh-btn" onclick="location.reload()">刷新数据</button>
+</div>
+
+<script>
+// 深度分析API配置
+const ANALYSIS_API_BASE = 'http://localhost:5000';
+
+// 加载深度分析
+async function loadDeepAnalysis(code) {
+    const container = document.getElementById('deep-analysis');
+    if (!container) return;
     
-    <div class="section">
-        <div class="section-title">实时研判</div>
-        <div class="analysis">
-            <p><strong>温和下跌:</strong> 农业银行今日下跌2.4%，收盘价6.09元。需关注是否有利空消息，控制仓位风险。</p>
-<p><strong>最新公告:</strong> 2026-06-27发布「农业银行:北京市金杜律师事务所关于中国农业银行股份有限公司2025年度股东会的法律意见书」，建议仔细阅读公告全文，评估对公司基本面的影响。</p>
-<p><strong>估值水平:</strong> PE 7.24, PB 0.77。</p>
-        </div>
-    </div>
+    // 检查是否已加载
+    if (container.dataset.loaded === 'true') {
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        return;
+    }
     
-    <div class="footer">
-        <p>数据来源: 腾讯财经 + 东方财富</p>
-        <p>生成时间: 2026-06-30 11:03:07</p>
-        <button class="refresh-btn" onclick="location.reload()">刷新数据</button>
-    </div>
+    // 显示加载中
+    container.innerHTML = '<div class="loading">分析中，请稍候...</div>';
+    container.style.display = 'block';
     
+    try {
+        const response = await fetch(`${ANALYSIS_API_BASE}/analyze?code=${code}`);
+        if (!response.ok) {
+            throw new Error(`API错误: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.analysis && data.analysis !== '分析失败') {
+            container.innerHTML = `<pre>${escapeHtml(data.analysis)}</pre>`;
+        } else {
+            container.innerHTML = '<div class="loading">分析失败，请稍后重试</div>';
+        }
+        
+        container.dataset.loaded = 'true';
+    } catch (error) {
+        container.innerHTML = `<div class="loading">加载失败: ${error.message}</div>`;
+    }
+}
+
+// HTML转义防止XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
 
 </body>
 </html>
